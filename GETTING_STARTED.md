@@ -23,21 +23,26 @@ and tools so it works the way a professional software team would:
 
 ---
 
-## Step 1: Copy the Template
+## Step 1: Get the Template
 
 Open a terminal (PowerShell or Command Prompt) and run:
 
 ```powershell
-# Copy the template into your project folder
-xcopy /E /I "C:\Users\kilvo\PycharmProjects\claude-code-best-practices" "D:\swim-app"
+# Clone the template from GitHub into your project folder
+git clone https://github.com/decnet105/claude-code-best-practices.git D:\swim-app
 
 # Go into your new project
 cd D:\swim-app
 
-# Start a fresh git history (this tracks all your changes)
+# Remove the template's git history so you start fresh
 Remove-Item -Recurse -Force .git
+
+# Start your own git history
 git init
 ```
+
+> **Note:** If the repo is private, make sure you're logged in to GitHub
+> on this computer first. Run `gh auth login` if you haven't already.
 
 ---
 

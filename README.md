@@ -31,11 +31,20 @@ A ready-to-fork repo structure that gives your Claude Code project:
 6. Start a Claude Code session — governance loads automatically
 
 ```bash
-git clone https://github.com/YOUR_ORG/claude-code-best-practices.git
-cd claude-code-best-practices
+# Clone into your project folder (replace YOUR_PROJECT with your app name)
+git clone https://github.com/decnet105/claude-code-best-practices.git YOUR_PROJECT
+cd YOUR_PROJECT
+
+# Remove template history and start fresh
+rm -rf .git   # On Windows: Remove-Item -Recurse -Force .git
+git init
+
 # Edit CLAUDE.md, .ai/team_manifest.md, .claude/settings.json
 # Then open Claude Code in this directory
 ```
+
+> See [GETTING_STARTED.md](GETTING_STARTED.md) for a beginner-friendly
+> walkthrough with a concrete example.
 
 ## Repo Structure
 
