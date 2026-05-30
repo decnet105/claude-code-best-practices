@@ -48,6 +48,8 @@ to the user FIRST, before any other work.
    protected hours. The PreToolUse hook enforces this.
 5. **Log audit decisions** in `docs/ai_activity_log.md` — PASS/FAIL verdicts only.
 6. **Record task completion** in `docs/change_log.md`.
+7. **Track work items** in `docs/tracker.md` — update status on every transition.
+   Human sets priority; AI captures and indexes items.
 
 ## Forbidden Behaviors
 
@@ -81,6 +83,7 @@ When finishing work:
 │   └── ...
 ├── tests/                  # Test suite
 ├── docs/                   # Documentation
+│   ├── tracker.md          # Work item index (features, bugs, improvements)
 │   ├── change_log.md       # Code change history
 │   ├── ai_activity_log.md  # AI audit decisions
 │   └── knowledge/          # Two-tier knowledge base

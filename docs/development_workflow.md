@@ -100,6 +100,8 @@ For non-trivial changes (>50 lines, multiple modules, critical paths):
 
 | Trigger | Required Doc Updates |
 |---------|---------------------|
+| New feature/bug/improvement identified | `docs/tracker.md` (add row, status OPEN) |
+| Work item status change | `docs/tracker.md` (update row) |
 | Any code change | `docs/change_log.md` |
 | Audit decision | `docs/ai_activity_log.md` |
 | Schema/interface change | Relevant spec doc |

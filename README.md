@@ -61,6 +61,7 @@ cd claude-code-best-practices
 │       ├── review-test-coverage-style.md
 │       └── review-security-risk.md
 ├── docs/
+│   ├── tracker.md                     # Work item index (features, bugs, debt)
 │   ├── change_log.md                  # Code change history
 │   ├── ai_activity_log.md             # AI audit decisions (PASS/FAIL only)
 │   ├── development_workflow.md        # End-to-end dev lifecycle

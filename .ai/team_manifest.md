@@ -80,7 +80,9 @@ Human Approval → merge + deploy
 8. **Update design docs for structural changes** — schema, interfaces, architecture.
 9. **Log audit decisions** in `docs/ai_activity_log.md` — PASS/FAIL verdicts only.
 10. **Record task completion** in `docs/change_log.md`.
-11. **All development on `main`** — no feature branches without explicit human request.
+11. **Track work items** in `docs/tracker.md` — update status on every transition.
+    Human sets priority; AI captures and indexes items. One row per item, link to detail.
+12. **All development on `main`** — no feature branches without explicit human request.
 
 ## Tier 3 — Efficiency Guidelines
 
@@ -97,6 +99,8 @@ Human Approval → merge + deploy
 **Primary record (always required):**
 
 ```
+docs/tracker.md            — work item index: features, bugs, improvements, research, debt
+                              (scan list only — detail lives in change_log + linked docs)
 docs/change_log.md         — every code change: ID, date, summary, status
 docs/ai_activity_log.md    — audit decisions ONLY: PASS/FAIL verdicts
 ```
