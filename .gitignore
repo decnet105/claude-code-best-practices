@@ -1,0 +1,39 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.next/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Runtime / data
+*.db
+*.db-wal
+*.db-shm
+*.parquet
+data/runtime/
+
+# Claude Code session artifacts (keep settings + hooks + commands + agents)
+.claude/todos/
