@@ -2,10 +2,16 @@
 
 **A step-by-step guide to set up Claude Code governance for your project.**
 
-This guide walks through a real example: setting up a swim team tracking app
-called **swim-app** on the D:\ drive. By the end, you'll have an AI coding
-assistant that follows rules, writes tests before code, keeps a changelog,
-and won't break your production files during important hours.
+This guide walks through a real example: building an iPhone swim team app
+called **swim-app** on the D:\ drive, using a development stack of:
+
+- **GitHub** — stores your code and syncs between devices
+- **ngrok** — lets your iPhone reach your local dev server over the internet
+- **Sideloadly** — installs your app on a real iPhone without the App Store
+
+By the end, you'll have an AI coding assistant that follows rules, writes
+tests before code, keeps a changelog, and won't break your app during
+swim meets.
 
 ---
 
@@ -23,12 +29,39 @@ and tools so it works the way a professional software team would:
 
 ---
 
-## Step 1: Get the Template
+## Prerequisites
 
-Open a terminal (PowerShell or Command Prompt) and run:
+Before you start, make sure you have these installed:
+
+| Tool | What It Does | Get It From |
+|------|-------------|-------------|
+| **Git** | Tracks your code changes | [git-scm.com](https://git-scm.com) |
+| **GitHub CLI (`gh`)** | Manages GitHub repos from the terminal | [cli.github.com](https://cli.github.com) |
+| **Claude Code** | Your AI coding assistant | [claude.ai/claude-code](https://claude.ai/claude-code) |
+| **Node.js** | Runs your app's dev server | [nodejs.org](https://nodejs.org) |
+| **ngrok** | Tunnels your local server to the internet | [ngrok.com](https://ngrok.com) |
+| **Sideloadly** | Installs .ipa files on your iPhone | [sideloadly.io](https://sideloadly.io) |
+
+Sign up for a free GitHub account if you don't have one, then log in:
 
 ```powershell
-# Clone the template from GitHub into your project folder
+gh auth login
+```
+
+Sign up for a free ngrok account and connect your auth token:
+
+```powershell
+ngrok config add-authtoken YOUR_TOKEN_HERE
+```
+
+---
+
+## Step 1: Get the Template
+
+Open PowerShell and run:
+
+```powershell
+# Clone the governance template from GitHub
 git clone https://github.com/decnet105/claude-code-best-practices.git D:\swim-app
 
 # Go into your new project
@@ -41,15 +74,14 @@ Remove-Item -Recurse -Force .git
 git init
 ```
 
-> **Note:** If the repo is private, make sure you're logged in to GitHub
-> on this computer first. Run `gh auth login` if you haven't already.
+> **Note:** If the repo is private, make sure you ran `gh auth login` first.
 
 ---
 
 ## Step 2: Edit CLAUDE.md (The Rulebook)
 
-Open `D:\swim-app\CLAUDE.md` in any text editor. Find the placeholder lines
-and replace them with your project info:
+Open `D:\swim-app\CLAUDE.md` in any text editor (Notepad, VS Code, whatever
+you like). Find the placeholder lines and replace them with your project info:
 
 **Find this:**
 ```
@@ -69,8 +101,9 @@ and replace them with your project info:
 
 **Change to:**
 ```
-├── src/                    # Application source code
-│   ├── app/                # Main swim-app code
+├── src/                    # React Native / Expo source code
+│   ├── app/                # Screens, components, navigation
+│   ├── api/                # Backend API (runs on your PC)
 ```
 
 **Find this:**
@@ -78,18 +111,17 @@ and replace them with your project info:
 {{TEST_COMMAND}}   # e.g., python -m pytest tests/ -x -q
 ```
 
-**Change to whatever test command your project uses**, for example:
+**Change to:**
 ```bash
-python -m pytest tests/ -x -q       # If using Python
-npm test                             # If using JavaScript
+npm test                    # Runs Jest tests for the React Native app
 ```
 
 ---
 
 ## Step 3: Set Up the Safety Hook
 
-The safety hook stops the AI from editing important files at times you choose
-(like during a swim meet when you don't want the app to break!).
+The safety hook stops Claude from editing important files at times you choose
+— like during a swim meet when your team is relying on the app!
 
 Open `D:\swim-app\.claude\hooks\production_safety_gate.py` and edit the
 config section near the top:
@@ -97,9 +129,9 @@ config section near the top:
 ```python
 # Files that should be protected during meets/events
 PROTECTED_PATTERNS = [
-    "src/app/timer.py",          # The race timer — never break this!
-    "src/app/scoreboard.py",     # Live scoreboard display
-    "src/app/meet_manager.py",   # Meet scheduling logic
+    "src/app/timer/",             # The race timer — never break this!
+    "src/app/scoreboard/",        # Live scoreboard display
+    "src/api/meet-results.js",    # API that saves official results
 ]
 
 # Your timezone
@@ -130,11 +162,12 @@ first items:
 
 | ID | Type | Priority | Summary | Status | Owner | Blocked By | Updated |
 |----|------|----------|---------|--------|-------|------------|---------|
-| FEAT-001 | feature | P1 | Swimmer profile page with times and PBs | OPEN | — | — | 2026-05-30 |
-| FEAT-002 | feature | P2 | Race timer with lane assignments | OPEN | — | FEAT-001 | 2026-05-30 |
-| FEAT-003 | feature | P2 | Meet schedule calendar view | OPEN | — | — | 2026-05-30 |
-| FEAT-004 | feature | P3 | Export times to CSV for coach | OPEN | — | — | 2026-05-30 |
-| BUG-001 | bug | P1 | App crashes when swimmer has no times yet | OPEN | — | — | 2026-05-30 |
+| FEAT-001 | feature | P1 | Swimmer profile page with times and PBs | OPEN | — | — | 2026-05-31 |
+| FEAT-002 | feature | P1 | Race timer with lane assignments | OPEN | — | — | 2026-05-31 |
+| FEAT-003 | feature | P2 | Meet schedule calendar view | OPEN | — | — | 2026-05-31 |
+| FEAT-004 | feature | P2 | Live scoreboard synced across phones | OPEN | — | FEAT-002 | 2026-05-31 |
+| FEAT-005 | feature | P3 | Export times to CSV for coach | OPEN | — | — | 2026-05-31 |
+| BUG-001 | bug | P1 | App crashes when swimmer has no times yet | OPEN | — | — | 2026-05-31 |
 ```
 
 **Priority guide:**
@@ -146,17 +179,102 @@ first items:
 
 ---
 
-## Step 5: Make Your First Commit
+## Step 5: First Commit + Push to GitHub
 
 ```powershell
 cd D:\swim-app
+
+# Commit everything locally
 git add -A
 git commit -m "Initial setup: swim-app with Claude Code governance"
+
+# Create a NEW repo on YOUR GitHub and push (choose private or public)
+gh repo create swim-app --private --source=. --push
 ```
+
+Now your code is on GitHub. You can see it at `https://github.com/YOUR_USERNAME/swim-app`.
 
 ---
 
-## Step 6: Start Using Claude Code
+## Step 6: The Development Stack
+
+Here's how the three tools work together when you're building and testing
+your app on a real iPhone:
+
+```
+                YOUR PC (D:\swim-app)                    YOUR iPHONE
+               ┌──────────────────────┐
+               │                      │
+  Claude Code  │   1. You write code  │
+  writes code  │      with Claude     │
+  here         │                      │
+               │   2. Dev server      │        ┌─────────────────┐
+               │      runs locally    │        │                 │
+               │      (localhost:     │ ◄──────│  4. Open the    │
+               │       3000)          │  ngrok │     app on      │
+               │         │            │ tunnel │     your phone  │
+               │         ▼            │        │     and test!   │
+               │   3. ngrok makes     │────────►                 │
+               │      localhost       │        └─────────────────┘
+               │      reachable from  │
+               │      the internet    │        For a real .ipa:
+               │                      │        ┌─────────────────┐
+               │   5. Build the .ipa  │────────│  6. Sideloadly  │
+               │      when ready      │  USB   │     installs it │
+               │                      │  cable │     on iPhone   │
+               └──────────────────────┘        └─────────────────┘
+```
+
+### Running Your Dev Server + ngrok
+
+While developing, you'll have three terminals open:
+
+**Terminal 1 — Claude Code (your AI assistant):**
+```powershell
+cd D:\swim-app
+claude
+```
+
+**Terminal 2 — Dev server (runs your app locally):**
+```powershell
+cd D:\swim-app
+npm start
+# App is now running at http://localhost:3000
+```
+
+**Terminal 3 — ngrok (makes it reachable from your phone):**
+```powershell
+ngrok http 3000
+# ngrok gives you a URL like: https://abc123.ngrok-free.app
+# Open this URL on your iPhone's browser to test!
+```
+
+### Installing on iPhone with Sideloadly
+
+When you're ready to install the real app (not just test in a browser):
+
+1. **Build the .ipa file** — Claude can help you with this:
+   ```
+   You: Build the .ipa for my swim-app
+   ```
+
+2. **Connect your iPhone** to your PC with a USB cable
+
+3. **Open Sideloadly** and:
+   - Drag your `.ipa` file into Sideloadly
+   - Enter your Apple ID (a free one works)
+   - Click "Start" — it installs the app on your phone!
+
+4. **Trust the app** on your iPhone:
+   - Go to Settings → General → VPN & Device Management
+   - Tap your Apple ID → Trust
+
+> **Important:** Free Apple IDs need to re-sign every 7 days. Just repeat
+> step 3 each week. A $99/year Apple Developer account makes it last a year.
+
+---
+
+## Step 7: Start Using Claude Code
 
 Open Claude Code in your project folder:
 
@@ -288,8 +406,9 @@ D:\swim-app\
 │       └── qa\
 │
 └── src\                         YOUR actual code goes here.
-    ├── app\                     (this is what you're building!)
-    └── tests\
+    ├── app\                     Screens, components, navigation
+    ├── api\                     Backend API server
+    └── __tests__\               Test files
 ```
 
 ---
@@ -319,23 +438,72 @@ it helps to know them:
 
 ---
 
-## Tips
+## Daily Workflow Cheat Sheet
 
-- **Start small.** You don't need to use every feature on day one. Start with
-  just `CLAUDE.md` and `/tdd`. Add the other skills as you get comfortable.
+Here's what a typical development day looks like:
 
-- **The tracker is your command center.** When you sit down to work, open
-  `docs/tracker.md` first to see what's next.
+```
+ ┌─────────────────────────────────────────────────────────────┐
+ │  MORNING — Sit down to code                                │
+ │                                                             │
+ │  1. Open PowerShell → cd D:\swim-app → claude               │
+ │  2. /session-health  (check everything is OK)               │
+ │  3. Open docs/tracker.md  (pick what to work on)            │
+ │  4. Tell Claude: "Let's work on FEAT-002"                   │
+ └──────────────────────┬──────────────────────────────────────┘
+                        │
+ ┌──────────────────────▼──────────────────────────────────────┐
+ │  BUILDING — Write features with TDD                        │
+ │                                                             │
+ │  5. /tdd  (Claude writes test → code → test → code)         │
+ │  6. Test on phone:                                          │
+ │     • Terminal 2: npm start                                 │
+ │     • Terminal 3: ngrok http 3000                            │
+ │     • Open the ngrok URL on your iPhone                     │
+ │  7. Found a bug? → /debug  (find root cause, then fix)      │
+ └──────────────────────┬──────────────────────────────────────┘
+                        │
+ ┌──────────────────────▼──────────────────────────────────────┐
+ │  WRAPPING UP — Save your progress                          │
+ │                                                             │
+ │  8. Claude commits and pushes to GitHub automatically       │
+ │  9. /handover  (saves session state for next time)          │
+ │ 10. Close Claude — done for the day!                        │
+ └─────────────────────────────────────────────────────────────┘
+```
 
-- **Handovers save time.** If you run `/handover` before closing Claude, your
-  next session starts 10x faster because Claude knows exactly where you left off.
+---
 
-- **Don't be afraid to edit the rules.** `CLAUDE.md` and the team manifest are
-  YOUR rules. If something isn't working, change it.
+## Pushing Updates to GitHub
 
-- **Git is your undo button.** Every commit is a save point. If something goes
-  wrong, you can always go back: `git log --oneline` to see your history,
-  `git checkout <hash> -- <file>` to restore a specific file.
+After Claude makes changes, push them to GitHub so they're backed up:
+
+```powershell
+git push
+```
+
+If you're working from a **different computer** (like a laptop at the pool),
+pull the latest code first:
+
+```powershell
+cd D:\swim-app
+git pull
+claude
+```
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `gh: command not found` | Install GitHub CLI from [cli.github.com](https://cli.github.com) |
+| `ngrok: command not found` | Install ngrok from [ngrok.com](https://ngrok.com), add to PATH |
+| ngrok URL doesn't load on phone | Make sure `npm start` is running in Terminal 2 first |
+| Sideloadly says "Apple ID error" | Use a regular Apple ID (not a managed/school one). Try creating a new free one at [appleid.apple.com](https://appleid.apple.com) |
+| App disappears after 7 days | Free Apple IDs expire weekly. Re-sideload, or get a $99/year developer account |
+| Claude won't edit a file | Check if the safety hook is blocking it (wrong time/day). Edit the hook config |
+| `git push` rejected | Run `git pull --rebase` first, then `git push` again |
 
 ---
 
@@ -345,34 +513,72 @@ Here's what a real session might look like:
 
 ```
 You: /session-health
-Claude: [shows git state, test results, no alerts — HEALTHY]
+Claude: Git: main @ a1b2c3d, clean tree
+        Tests: 12 passed, 0 failed
+        Alerts: none
+        Overall: HEALTHY
 
-You: Let's work on FEAT-001, the swimmer profile page.
+You: Let's work on FEAT-002, the race timer with lane assignments.
 
 You: /tdd
-Claude: OK, let's plan the behaviors:
-        1. When I view a swimmer, I see their name and age
-        2. When a swimmer has times, I see them listed by event
-        3. When a swimmer has no times, I see "No times recorded yet"
-        4. When I add a new time, it appears in the list
+Claude: Let's plan the behaviors:
+        1. Timer shows lane numbers 1-8 with swimmer names
+        2. Start button begins countdown (3-2-1-GO)
+        3. Each lane has its own split/stop button
+        4. Stopping a lane records the time to 2 decimal places
+        5. All times are saved to the swimmer's profile
         Does this look right?
 
-You: Yes, let's go.
-Claude: [writes test_swimmer_profile_shows_name_and_age — RED, fails]
-Claude: [writes minimal code — GREEN, passes]
-Claude: [writes test_swimmer_with_times_shows_list — RED, fails]
-Claude: [writes code — GREEN, passes]
-        ... (repeats for each behavior)
-Claude: All 4 tests passing. Full suite: 4 passed, 0 failed.
-        Updated tracker: FEAT-001 → DONE.
-        Updated change_log with details.
+You: Yes but only 6 lanes, our pool has 6 lanes not 8.
 
-You: /handover
-Claude: [writes docs/handover/HANDOVER_2026-05-30_swimmer-profile.md]
-        Done. Next session can pick up from FEAT-002 (race timer).
+Claude: Got it — 6 lanes. Starting with behavior 1.
+        [writes test_timer_shows_six_lanes_with_names — RED, fails]
+        [writes LaneDisplay component — GREEN, passes]
+        [writes test_start_button_triggers_countdown — RED, fails]
+        [writes CountdownTimer component — GREEN, passes]
+        ... (repeats for each behavior)
+
+Claude: All 5 tests passing. Full suite: 17 passed, 0 failed.
+        Committed: "feat: add race timer with 6-lane support"
+        Updated tracker: FEAT-002 → DONE.
+
+You: Let me test it on my phone. Is ngrok running?
+
+Claude: Start your dev server and ngrok:
+        Terminal 2: npm start
+        Terminal 3: ngrok http 3000
+        Then open the ngrok URL on your iPhone.
+
+You: The timer works but it looks weird on my phone. The lane buttons
+     are too small to tap.
+
+You: /debug
+Claude: Phase 0 — Classification: L3 (Code) — CSS/layout issue,
+        not infrastructure or architecture.
+        Phase 1 — Reading src/app/timer/LaneDisplay.jsx...
+        Root cause: button height is 32px, Apple recommends minimum
+        44px for touch targets on iOS.
+        [writes test_lane_buttons_meet_minimum_touch_size — RED]
+        [fixes button height to 48px — GREEN]
+
+You: Perfect! /handover
+Claude: [writes HANDOVER_2026-05-31_race-timer.md]
+        Ship summary: FEAT-002 done (race timer, 6 lanes, iOS touch fix).
+        Next up: FEAT-004 (live scoreboard) is unblocked now.
 ```
 
 ---
+
+## What's Next?
+
+Once you're comfortable with the basics:
+
+- **Add more features** to the tracker and work through them with `/tdd`
+- **Write knowledge articles** in `docs/knowledge/` when you learn something
+  useful (like "how to make buttons tappable on iPhone")
+- **Run `/code-review`** before pushing big changes
+- **Run `/security-audit`** before adding any login or user data features
+- **Share the GitHub repo** with your swim coach so they can see progress
 
 That's it! You now have a professional-grade AI development setup. Have fun
 building swim-app!
